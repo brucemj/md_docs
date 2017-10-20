@@ -1,3 +1,4 @@
+[toc]
 ## cssover查询地址
 - http://www.xiaobinglaile.com:9081/hyc/statisticscount/getsales.do
 - http://www.xiaobinglaile.com:9081/hyc/
@@ -61,8 +62,9 @@ SELECT DISTINCT (SUBSTRING(SUBSTRING_INDEX(sfv, '_',2), 4)) AS devicemodel FROM
 
 ### 优化尝试：
 #### 增加机型字段
-alter table odmcard add pm pm char(16) not null default '' After odmid;
-
+```
+alter table odmcard add pm char(16) not null default '' After odmid ;
+```
 #### 机型更新规则
 odmcard 表
 |pm(计算后的机型)|softwareVersion|
@@ -77,27 +79,45 @@ odm_own 表
 |KAAE1_EN_M0_0.10.317|Dialog_Infinity_Pro_V0.6|
 
 #### 两次更新
+```
 update odmcard o , odm_own t
 	set pm=(SUBSTRING(SUBSTRING_INDEX(t.ownversion, '_',2), 4))  	
-	where pm='' and ( o.softwareVersion=t.ownversion or o.softwareVersion=t.odmversion )
-Query OK, 293319 rows affected (5.11 sec)
-Rows matched: 293320  Changed: 293319  Warnings: 0
+	where pm='' and ( o.softwareVersion=t.ownversion or o.softwareVersion=t.odmversion ) ;
+```
+> Query OK, 293319 rows affected (5.11 sec)
+  Rows matched: 293320  Changed: 293319  Warnings: 0
 
-update odmcard o , odm_own t
-	set pm=(SUBSTRING(SUBSTRING_INDEX(o.softwareVersion, '_',2), 4))  	
-	where pm='' and LENGTH( SUBSTRING_INDEX(o.softwareVersion, '_',2) )<20 and  left(o.softwareVersion, 3)='KAA' and o.softwareVersion!=t.ownversion and o.softwareVersion!=t.odmversion
-Query OK, 128883 rows affected (27.29 sec)
-Rows matched: 128883  Changed: 128883  Warnings: 0
+```
+ update odmcard o , odm_own t
+    set pm=(SUBSTRING(SUBSTRING_INDEX(o.softwareVersion, '_',2), 4))  	
+    where pm='' and
+      LENGTH( SUBSTRING_INDEX(o.softwareVersion, '_',2) )<20 and
+      left(o.softwareVersion, 3)='KAA' and o.softwareVersion!=t.ownversion and
+      o.softwareVersion!=t.odmversion ;
+```
+> Query OK, 128883 rows affected (27.29 sec)
+  Rows matched: 128883  Changed: 128883  Warnings: 0
 
+```
 select odmid, softwareVersion from odmcard where LENGTH( SUBSTRING_INDEX(o.softwareVersion, '_',2) )>20 ;
+```
+
+#### 增加机型索引
+```
+ALTER TABLE `odmcard` ADD INDEX pm ( `pm` ) ;
+```
 
 #### 机型查询
-select pm , count(pm) num from odmcard where pm!='' group by pm having num>100;
-50 rows in set (0.60 sec)
-
+```
+select pm , count(pm) num from odmcard where pm!='' group by pm having num>100 ;
+```
+> 50 rows in set (0.60 sec)
 
 #### 销量查询
+```
 select pm , count(pm) sales , DATE_FORMAT(createTime,'%Y-%m-%d') days from odmcard where pm='E1_USD' group by days ;
 select pm , count(pm) sales , DATE_FORMAT(createTime,'%Y-%m-%d') days from odmcard where pm='E2X_BGG' group by days ;
+
 select pm , count(pm) sales , DATE_FORMAT(createTime,'%Y-%uweek') as weeks from odmcard where pm='E2X_BGG' group by weeks ;
 select pm , count(pm) sales , DATE_FORMAT(createTime,'%Y-%uweek') as weeks from odmcard where pm='E2X_CLA' group by weeks ;
+```
