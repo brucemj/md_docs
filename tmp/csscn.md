@@ -33,17 +33,27 @@ SELECT
 , sum( if (upBynetwork=1 , 1 ,0) ) as ByNetwork
 , sum( if (upBynetwork=1 , 1 ,0) ) / count(*) as 'net/persent'
 
-, sum( if (datediff(UPDATEtime , createtime)>7 , 1 ,0) ) as day7
-, sum( if (datediff(UPDATEtime , createtime)>30 , 1 ,0) ) as day30
-, sum( if (datediff(UPDATEtime , createtime)>100 , 1 ,0) ) as day100
+, sum( if (datediff(updatetime , createtime)>7 , 1 ,0) ) as day7
+, sum( if (datediff(updatetime , createtime)>30 , 1 ,0) ) as day30
+, sum( if (datediff(updatetime , createtime)>100 , 1 ,0) ) as day100
 
-, sum( if (datediff(UPDATEtime , createtime)>7 , 1 ,0) )/sum( if (upBynetwork=1 , 1 ,0) )  as 'day7/persent'
-, sum( if (datediff(UPDATEtime , createtime)>30 , 1 ,0) )/sum( if (upBynetwork=1 , 1 ,0) )  as 'day30/persent'
-, sum( if (datediff(UPDATEtime , createtime)>100 , 1 ,0) )/sum( if (upBynetwork=1 , 1 ,0) )  as 'day100/persent'
+, sum( if (datediff(updatetime , createtime)>7 , 1 ,0) )/sum( if (upBynetwork=1 , 1 ,0) )  as 'day7/persent'
+, sum( if (datediff(updatetime , createtime)>30 , 1 ,0) )/sum( if (upBynetwork=1 , 1 ,0) )  as 'day30/persent'
+, sum( if (datediff(updatetime , createtime)>100 , 1 ,0) )/sum( if (upBynetwork=1 , 1 ,0) )  as 'day100/persent'
 
 FROM `electroniccard`
 WHERE SUBSTR(SUBSTRING_INDEX(softwareVersion, '_', 1), 4 ) in ('E2') and upbynetwork=1 and createtime > timestamp('2017-04-20')
 group by modem
+
+
+### 按照机型，查询
+SELECT
+  createtime, updatetime , ncreatetime, nupdatetime
+  , softwareVersion , upBynetwork
+FROM `electroniccard`
+WHERE
+  SUBSTR(SUBSTRING_INDEX(softwareVersion, '_', 1), 4 ) in ('S5') and createtime > timestamp('2017-04-20')
+ORDER BY `card_id` DESC
 ```
 
 #### 创建 e2_sale表
@@ -56,10 +66,13 @@ CREATE TABLE `e2_sale` (
   `delay` int(7) DEFAULT NULL,
   `createtime` datetime DEFAULT NULL COMMENT '创建时间',
   `updatetime` datetime DEFAULT NULL ,
+  `merge` int(7) DEFAULT 0,
   `app_stime` datetime DEFAULT NULL ,
   `app_etime` datetime DEFAULT NULL ,
-  `app_notes` datetime DEFAULT NULL ,
-  PRIMARY KEY (`id`)
+  `net_num` int DEFAULT NULL,
+  `note_num` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_imei` (`imei`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 ```
 
@@ -101,3 +114,28 @@ from  appinfo where imei='864307030350916';
 ```
 
 #### python 脚本编写
+
+- 按日期统计E2销量
+```
+select count(*) , DATE_FORMAT(createTime,'%Y.%m.%d') from e2_sale group by DATE_FORMAT(createTime,'%Y.%m.%d')
+```
+- 按日期统计E2没有信息采集的数量
+```
+select count(*) , DATE_FORMAT(createTime,'%Y.%m.%d') from e2_sale where net_num is null group by DATE_FORMAT(createTime,'%Y.%m.%d') ;
+```
+
+#### sqlserver 语法：
+- 查询
+```
+# 查询1
+select top 5 * from KKIMEI.dbo.t_mo_imei where substring(S_softwareVersion, 1, 6)='KAAE2_' ;
+# 查询2
+select top 5 * from KKIMEI.dbo.t_mo_imei where S_SMSCDateTime>dateadd(day,0,'2017-4-20') ;
+# 新建表，插入数据
+select top 5
+I_ID , S_IMEI, S_SendMobileNumber,S_SMSCNumber , S_SMSCDateTime, D_UpdateTime, S_softwareVersion
+from KKIMEI.dbo.t_mo_imei where S_SMSCDateTime>dateadd(day,0,'2017-4-20') ;
+
+```
+
+-
