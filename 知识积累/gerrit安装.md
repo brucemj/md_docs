@@ -24,7 +24,7 @@ com.google.inject.ProvisionException: Unable to provision, see the following err
 code review的目的是团队成员在一起共同学习，而不是相互”挑错”.将code review称为代码回顾好一些, 如果大家放弃”挑错”来共同学习,那么代码回顾中学习什么呢?
 代码回顾的学习重点是团队成员共同识别模式，这里的模式是指程序员编写代码的习惯,包括”好模式”和”反模式”. 像富有表达力的命名, 单一职责的方法, 良好的格式缩进等,都是”好模式”. 团队成员通过阅读最近编写的测试代码和生产代码来识别”好模式”和”反模式”.既是团队成员之间相互学习的过程, 也是团队整体达成整洁代码共识的过程.
 
-java -jar gerrit-2.11.5.war reindex
+java -jar gerrit-2.11.5.war reindex -d t3/
 
 ============
 Configuration Error
@@ -106,7 +106,7 @@ Delta compression using up to 2 threads.
 Compressing objects: 100% (2/2), done.
 Writing objects: 100% (3/3), 291 bytes, done.
 Total 3 (delta 0), reused 0 (delta 0)
-remote: Processing changes: refs: 1, done    
+remote: Processing changes: refs: 1, done
 remote: ERROR: [3f3b593] missing Change-Id in commit message footer
 remote:
 remote: Hint: To automatically insert Change-Id, install the hook:
@@ -114,3 +114,36 @@ remote:   gitdir=$(git rev-parse --git-dir); scp -p -P 29418 test@172.21.12.73:h
 remote: And then amend the commit:
 remote:   git commit --amend
 remote:
+
+### 通过命令行配置邮件
+```
+cd site
+java -jar bin/gerrit.war gsql
+gerrit set-account --add-email mojun@konka.com admin
+
+```
+
+### http认证方式，添加用户出现错误
+```
+The page you requested was not found, or you do not have permission to view this page.
+```
+- 解决办法：需要用户先登录，激活，然后才能添加到相应组中
+
+### 在web端查看不了 代码的 diff
+- 报错： "The page you requested was not found, or you do not have permission to view this page."
+-  [troubleshooting](https://gerrit-review.googlesource.com/Documentation/config-reverseproxy.html#_troubleshooting)
+
+Nginx Configuration
+To run Gerrit behind an Nginx server, use a server statement such as this one:
+```
+	server {
+	  listen 80;
+	  server_name review.example.com;
+
+	  location ^~ /r/ {
+	    proxy_pass        http://127.0.0.1:8081;
+	    proxy_set_header  X-Forwarded-For $remote_addr;
+	    proxy_set_header  Host $host;
+	  }
+	}
+```

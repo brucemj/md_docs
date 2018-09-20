@@ -1205,3 +1205,6 @@ AWK中可以使用`|&`进行**双向连接**，那么什么是双向连接呢？
 - [The GNU Awk User's Guide](https://www.gnu.org/software/gawk/manual/gawk.html)
 
 本文将会持续修正和更新，最新内容请参考我的 [GITHUB](https://github.com/mylxsw) 上的 [程序猿成长计划](https://github.com/mylxsw/growing-up) 项目，欢迎 Star。
+
+#### 获取当前目录名
+coin=$(pwd  | awk '{len=split($0,a,"/" ) ; print a[len]}')

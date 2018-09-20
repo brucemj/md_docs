@@ -118,3 +118,68 @@ location = /userservice/odm/addodm.do {
 
 service nginx restart
 /bin/systemctl nginx restart
+
+### 内销常见问题：
+
+#### Work queue full
+```
+- 01-Nov-2017 18:49:19.730 WARNING [http-nio-8080-ClientPoller-0] org.apache.tomcat.util.net.AbstractEndpoint.processSocket Executor rejected socket [org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper@7430e28f:org.apache.tomcat.util.net.NioChannel@356a55e1:java.nio.channels.SocketChannel[connected local=/192.168.0.4:8080 remote=/106.83.43.12:56550]] for processing
+ java.util.concurrent.RejectedExecutionException: Work queue full.
+        at org.apache.catalina.core.StandardThreadExecutor.execute(StandardThreadExecutor.java:172)
+        at org.apache.tomcat.util.net.AbstractEndpoint.processSocket(AbstractEndpoint.java:934)
+        at org.apache.tomcat.util.net.NioEndpoint$Poller.processKey(NioEndpoint.java:844)
+        at org.apache.tomcat.util.net.NioEndpoint$Poller.run(NioEndpoint.java:820)
+        at java.lang.Thread.run(Thread.java:745)
+```
+#### 错误信息2
+```
+{WARN } [2017-11-02 16:24:26,546] <com.alibaba.druid.pool.DruidDataSource> : not full timeout retry : 1
+
+```
+#### 错误信息2 数据库频繁出现下面错误
+```
+ERROR 1040 (HY000): Too many connections
+
+```
+[oo Many  Connections](http://blog.csdn.net/dracotianlong/article/details/9040677)
+
+
+#### 提示信息1
+```
+02-Nov-2017 16:33:24.701 INFO [catalina-exec-575] org.apache.coyote.http11.Http11Processor.service Error parsing HTTP request heade
+r
+ Note: further occurrences of HTTP header parsing errors will be logged at DEBUG level.
+ java.lang.IllegalArgumentException: Invalid character found in method name. HTTP method names must be tokens
+        at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:422)
+        at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:667)
+        at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:66)
+        at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:798)
+        at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1441)
+        at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49)
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+        at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61)
+        at java.lang.Thread.run(Thread.java:745)
+```
+
+#### 日志配置
+```
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+private final static Logger logger = LoggerFactory.getLogger(ElectronicCardServiceImpl.class);
+
+### 可以配置显示代码所在类，方法，行等信息
+# 用法，配置，和 spring boot 集成
+```
+
+
+#### 启动 jar 过多，导致内存不足，启动失败
+```
+Java HotSpot(TM) 64-Bit Server VM warning: INFO: os::commit_memory(0x00000000e0000000, 128974848, 0) failed; error='Cannot allocate memory' (errno=12)
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 128974848 bytes for committing reserved memory.
+# An error report file with more information is saved as:
+# /konkacss/csstest/yws/hs_err_pid24333.log
+```

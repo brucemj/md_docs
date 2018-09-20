@@ -44,7 +44,7 @@
 - 437476
 - delete from cssdata.overodmcard where odmid > 395407;
 
-- UPDATE cssdata.overodmcard e, mcccode m  SET e.country=m.country_en , e.countryzh=m.country  WHERE odmid > 395407 and SUBSTRING_INDEX(e.location, '_',1)=m.mcc;
+- UPDATE cssdata.overodmcard e, cssdata.mcccode m  SET e.country=m.country_en , e.countryzh=m.country  WHERE odmid > 497484 and SUBSTRING_INDEX(e.location, '_',1)=m.mcc
 
 ## 用户信息 优化
 ### 优化前
@@ -80,26 +80,37 @@ odm_own 表
 
 #### 两次更新
 ```
-update odmcard o , odm_own t
-	set pm=(SUBSTRING(SUBSTRING_INDEX(t.ownversion, '_',2), 4))  	
-	where pm='' and ( o.softwareVersion=t.ownversion or o.softwareVersion=t.odmversion ) ;
+update cssdata.overodmcard o , cssdata.odm_own t
+	set o.pm=(SUBSTRING(SUBSTRING_INDEX(t.ownversion, '_',2), 4))  	
+	where o.pm='' and ( o.softwareVersion=t.ownversion or o.softwareVersion=t.odmversion ) ;
 ```
 > Query OK, 293319 rows affected (5.11 sec)
   Rows matched: 293320  Changed: 293319  Warnings: 0
 
 ```
- update odmcard o , odm_own t
-    set pm=(SUBSTRING(SUBSTRING_INDEX(o.softwareVersion, '_',2), 4))  	
-    where pm='' and
-      LENGTH( SUBSTRING_INDEX(o.softwareVersion, '_',2) )<20 and
-      left(o.softwareVersion, 3)='KAA' and o.softwareVersion!=t.ownversion and
-      o.softwareVersion!=t.odmversion ;
+update cssdata.overodmcard o , cssdata.odm_own t
+   set o.pm=(SUBSTRING(SUBSTRING_INDEX(o.softwareVersion, '_',2), 4))  	
+   where o.pm='' and
+     LENGTH( SUBSTRING_INDEX(o.softwareVersion, '_',2) )<20 and
+     left(o.softwareVersion, 3)='KAA' and o.softwareVersion!=t.ownversion and
+     o.softwareVersion!=t.odmversion ;
 ```
 > Query OK, 128883 rows affected (27.29 sec)
   Rows matched: 128883  Changed: 128883  Warnings: 0
 
 ```
 select odmid, softwareVersion from odmcard where LENGTH( SUBSTRING_INDEX(o.softwareVersion, '_',2) )>20 ;
+```
+
+#### 外销自主机型数据
+```
+# alter table overelectroniccard drop column countryzh2 ;
+
+INSERT IGNORE INTO cssdata.overelectroniccard
+SELECT *  FROM userservice.electroniccardover WHERE userservice.electroniccardover.overid > 9503;
+
+UPDATE cssdata.overelectroniccard e, cssdata.mcccode m  SET e.country=m.country_en , e.countryzh=m.country  WHERE  SUBSTRING_INDEX(e.location, '_',1)=m.mcc
+
 ```
 
 #### 增加机型索引
